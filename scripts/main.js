@@ -44,7 +44,8 @@ window.addEventListener('scroll', () => {
 const contactForm = document.getElementById('contactForm');
 if (contactForm) {
     contactForm.addEventListener('submit', function(e) {
-        e.preventDefault();
+        // Let Formspree handle the submission
+        // We'll add success/error handling after submission
         
         const formData = new FormData(this);
         const name = formData.get('name');
@@ -53,18 +54,25 @@ if (contactForm) {
         
         // Basic validation
         if (!name || !email || !message) {
+            e.preventDefault();
             showNotification('Please fill in all fields.', 'error');
             return;
         }
         
         if (!isValidEmail(email)) {
+            e.preventDefault();
             showNotification('Please enter a valid email address.', 'error');
             return;
         }
         
-        // Simulate form submission (replace with actual form handling)
-        showNotification('Thank you for your message! We\'ll get back to you soon.', 'success');
-        this.reset();
+        // Show loading state
+        const submitButton = this.querySelector('button[type="submit"]');
+        const originalText = submitButton.textContent;
+        submitButton.textContent = 'Sending...';
+        submitButton.disabled = true;
+        
+        // Formspree will handle the submission
+        // We'll add success handling via URL parameters
     });
 }
 
@@ -240,4 +248,20 @@ activeLinkStyle.textContent = `
         font-weight: 600;
     }
 `;
-document.head.appendChild(activeLinkStyle); 
+document.head.appendChild(activeLinkStyle);
+
+// Handle Formspree success/error messages
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('status');
+    
+    if (status === 'success') {
+        showNotification('Thank you for your message! I\'ll get back to you soon.', 'success');
+        // Clear the URL parameters
+        window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (status === 'error') {
+        showNotification('There was an error sending your message. Please try again.', 'error');
+        // Clear the URL parameters
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+}); 
